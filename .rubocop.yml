@@ -3,3 +3,7 @@ AllCops:
   DisplayCopNames: true
   DisplayStyleGuide: true
   ExtraDetails: true
+
+# Give us a little more leeway on method lengths
+Metrics/MethodLength:
+  Max: 15

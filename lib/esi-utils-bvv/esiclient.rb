@@ -12,6 +12,7 @@ module ESIUtils
     def initialize
       super
       @seen_warnings = Set.new
+      @delay_times = [0, 0.5, 1, 2, 5, 15].freeze
     end
 
     def log_warning_header(path, headers)
@@ -21,13 +22,66 @@ module ESIUtils
       # Only notify about a given (genericised) path once
       return if @seen_warnings.include?(g_path)
       @seen_warnings.add(g_path)
-      puts("Warning: '#{warning}' on path '#{g_path}")
+      puts("Warning: '#{warning}' on path '#{g_path}'")
     end
 
+    #
+    # Does the given HTTP status code represent something
+    # that we should retry?
+    #
+    # 420 Error Limited
+    # 502 Bad Gateway
+    # 503 Service Unavailable
+    # 504 Gateway Timeout
+    #
+    def retry_status?(code)
+      case code
+      when 420, 502, 503, 504
+        true
+      else
+        false
+      end
+    end
+
+    #
+    # Can we retry?
+    #
+    # Based on the details of the APIError exception along
+    # with an array of remaining retry delays.
+    #
+    # If retrying is possible, the result is a number of seconds
+    # to delay before performing the next attempt.
+    #
+    def can_retry?(api_error, delays)
+      # Can't retry if we have exhausted our list of retry delays.
+      return false if delays.empty?
+      # Only certain status codes are retryable.
+      return false unless retry_status?(api_error.code)
+      # Peel off a time to delay for before retrying.
+      delays.shift
+    end
+
+    #
+    # Customised call_api, which wraps itself around the one
+    # provided by the Swagger generated code.
+    #
+    # Adds:
+    #
+    # * Logging of warning headers when the API is versioned.
+    # * Automatic retrying of temporary failures.
+    #
     def call_api(http_method, path, opts = {})
-      data, code, headers = super(http_method, path, opts)
-      log_warning_header(path, headers)
-      [data, code, headers]
+      delays = @delay_times.dup
+      begin
+        data, code, headers = super(http_method, path, opts)
+        log_warning_header(path, headers)
+        [data, code, headers]
+      rescue ESI::ApiError => api_error
+        raise unless (secs = can_retry?(api_error, delays))
+        puts("Retrying #{http_method} on '#{path}' after #{secs}")
+        sleep(secs)
+        retry
+      end
     end
   end
 end
