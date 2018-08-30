@@ -15,6 +15,14 @@ module ESIUtils
       @delay_times = [0, 0.5, 1, 2, 5, 15].freeze
     end
 
+    #
+    # Shorthand access to the base API client's configured
+    # logger.
+    #
+    def logger
+      @config.logger
+    end
+
     def log_warning_header(path, headers)
       return unless (warning = headers['Warning'])
       # Genericise the path, removing parameters
@@ -22,7 +30,7 @@ module ESIUtils
       # Only notify about a given (genericised) path once
       return if @seen_warnings.include?(g_path)
       @seen_warnings.add(g_path)
-      puts("Warning: '#{warning}' on path '#{g_path}'")
+      logger.warn "'#{warning}' on path '#{g_path}'"
     end
 
     #
@@ -78,7 +86,7 @@ module ESIUtils
         [data, code, headers]
       rescue ESI::ApiError => api_error
         raise unless (secs = can_retry?(api_error, delays))
-        puts("Retrying #{http_method} on '#{path}' after #{secs}")
+        logger.info "retrying #{http_method} on '#{path}' after #{secs}s"
         sleep(secs)
         retry
       end

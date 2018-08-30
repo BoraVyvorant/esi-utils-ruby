@@ -44,4 +44,11 @@ class TestESIClient < Minitest::Test
     # second time through should be false, no delays left
     refute @client.can_retry?(exception502, delays)
   end
+
+  def test_logger
+    log = @client.logger
+    assert log
+    # check default log level
+    assert log.level == Logger::DEBUG
+  end
 end
