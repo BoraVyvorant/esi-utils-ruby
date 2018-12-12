@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    esi-utils-bvv (0.1.2)
+    esi-utils-bvv (0.1.3)
       esi-client-bvv (~> 1.0.4)
       ffi (>= 1.9.24)
 
