@@ -28,15 +28,6 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'esi-client-bvv', '~> 1.0.4'
 
-  #
-  # Pin the 'ffi' gem at version 1.9.21 to prevent segfaults on
-  # macOS 10.13 High Sierra.
-  #
-  # Underlying issue: https://github.com/ffi/ffi/issues/619
-  #
-  # This gem is an indirect dependency via
-  #  esi-client-bvv --> typhoeus --> ethon --> ffi
-  # but ethon requires only >= 1.3.0.
-  #
-  s.add_dependency 'ffi', '1.9.21'
+  # Security constraint: CVE-2018-1000201
+  s.add_dependency 'ffi', '>= 1.9.24'
 end
