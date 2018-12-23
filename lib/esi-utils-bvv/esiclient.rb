@@ -23,13 +23,23 @@ module ESIUtils
       @config.logger
     end
 
+    #
+    # Log deprecation warnings, as they indicate that we need to upgrade
+    # to a new version of the route.
+    #
     def log_warning_header(path, headers)
       return unless (warning = headers['Warning'])
+
+      # Don't warn just because a new route is available.
+      return if warning.start_with? '199'
+
       # Genericise the path, removing parameters
       g_path = path.gsub(%r{/\d+/}, '/id/')
+
       # Only notify about a given (genericised) path once
       return if @seen_warnings.include?(g_path)
       @seen_warnings.add(g_path)
+
       logger.warn "'#{warning}' on path '#{g_path}'"
     end
 

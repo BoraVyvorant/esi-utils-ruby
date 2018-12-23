@@ -52,6 +52,14 @@ class TestESIClient < Minitest::Test
     assert log.level == Logger::DEBUG
   end
 
+  def test_199_warning_is_not_logged
+    log = MiniTest::Mock.new
+    @client.config = ESI::Configuration.new
+    @client.config.logger = log
+    @client.log_warning_header '/path/', 'Warning' => '199 - upgrade available'
+    log.verify
+  end
+
   def test_299_warning_is_logged
     log = MiniTest::Mock.new
     log.expect :warn, true, [String]
