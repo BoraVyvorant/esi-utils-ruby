@@ -51,4 +51,13 @@ class TestESIClient < Minitest::Test
     # check default log level
     assert log.level == Logger::DEBUG
   end
+
+  def test_299_warning_is_logged
+    log = MiniTest::Mock.new
+    log.expect :warn, true, [String]
+    @client.config = ESI::Configuration.new
+    @client.config.logger = log
+    @client.log_warning_header '/path/', 'Warning' => '299 - deprecated'
+    log.verify
+  end
 end
